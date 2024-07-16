@@ -99,7 +99,7 @@ export default function SideNav() {
                                                     ))}
                                                 </>
                                             ) : (
-                                                <p>We couldn't come up with any suggestions :(</p>
+                                                <p>We couldn&apos;t come up with any suggestions :(</p>
                                             )}
                                         </div>
                                     </>
