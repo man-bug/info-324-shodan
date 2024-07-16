@@ -5,10 +5,11 @@ import NextTopLoader from "nextjs-toploader";
 
 import { Inter as FontSans } from "next/font/google";
 import { JetBrains_Mono as FontMono } from "next/font/google";
-import SideNav from "@/components/nav/side-nav";
+import SideNav from "@/components/nav/side-nav/side-nav";
 import TopNav from "@/components/nav/top-nav";
 import { ThemeProvider } from "next-themes";
-import { ModelProvider } from "./context/model-context";
+import { DeviceProvider } from "./context/device-context";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const fontSans = FontSans({
     subsets: ["latin"],
@@ -27,34 +28,31 @@ export const metadata: Metadata = {
 export default async function RootLayout({
     children,
 }: Readonly<{
-        children: React.ReactNode;
-    }>) {
+    children: React.ReactNode;
+}>) {
     return (
         <html lang="en" suppressHydrationWarning>
             <body
                 className={cn(
                     "min-h-screen font-mono text-[15px] md:text-[13px] antialiased bg-background",
                     fontSans.variable,
-                    fontMono.variable,
+                    fontMono.variable
                 )}
                 suppressHydrationWarning
             >
                 <NextTopLoader shadow="none" showAtBottom />
-                <ThemeProvider
-                    attribute="class"
-                    defaultTheme="system"
-                    enableSystem
-                    disableTransitionOnChange
-                >
-                    <ModelProvider>
-                        <div className="min-h-screen flex">
-                            <SideNav />
-                            <div className="flex flex-col w-full">
-                                <TopNav />
-                                {children}
+                <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+                    <DeviceProvider>
+                        <TooltipProvider>
+                            <div className="min-h-screen flex">
+                                <SideNav />
+                                <div className="flex flex-col w-full">
+                                    <TopNav />
+                                    {children}
+                                </div>
                             </div>
-                        </div>
-                    </ModelProvider>
+                        </TooltipProvider>
+                    </DeviceProvider>
                 </ThemeProvider>
             </body>
         </html>
