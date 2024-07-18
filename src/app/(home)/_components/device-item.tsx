@@ -1,16 +1,16 @@
 "use client";
+import test from "../../../../public/GNU.jpg";
 
 import React from "react";
 import { ShodanDevice } from "@/app/actions/fetch-shodan-devices";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useDeviceContext } from "@/app/context/device-context";
-import { cn } from "@/lib/utils";
+import { cn, findBestMatchingImage, imageMap } from "@/lib/utils";
 import Image from "next/image";
 
 export default function DeviceItem({ device }: { device: ShodanDevice }) {
     const { setSelectedDevice, selectedDevice } = useDeviceContext();
-
-    console.log(device.modelName);
+    const imageKey = findBestMatchingImage(device.modelName);
 
     return (
         <li
@@ -21,34 +21,42 @@ export default function DeviceItem({ device }: { device: ShodanDevice }) {
             )}
         >
             <div className="grid lg:grid-cols-2 lg:grid-rows-1 gap-4">
-                <div className="flex flex-col">
-                    <div className="flex items-center gap-2">
-                        <Checkbox
-                            value={device.modelName}
-                            checked={selectedDevice === device}
-                            onCheckedChange={() =>
-                                setSelectedDevice(selectedDevice === device ? null : device)
-                            }
-                            onClick={() => setSelectedDevice(device)}
-                        >
-                            {selectedDevice === device ? "Model selected" : "Select"}
-                        </Checkbox>
-                        <p className="font-bold text-base">{device.modelName}</p>
-                    </div>
-                    <p>{device.ip}</p>
-                    <p>{device.hostname}</p>
-                    <div className="mt-auto">
-                        <p className="text-muted-foreground line-clamp-1">{device.organization}</p>
-                        <p className="text-muted-foreground">{device.location}</p>
+                <div className="flex flex-col lg:flex-row gap-2">
+                    {imageKey ? (
+                        <Image
+                            src={imageMap[imageKey]}
+                            alt={device.modelName}
+                            className="object-fit aspect-video w-[160px] rounded-lg shrink-0"
+                        />
+                    ) : (
+                        <div className="w-[160px] aspect-video bg-muted rounded-lg flex items-center justify-center">
+                            No image found :(
+                        </div>
+                    )}
+                    <div className="flex flex-col">
+                        <div className="flex items-center gap-2">
+                            <Checkbox
+                                value={device.modelName}
+                                checked={selectedDevice === device}
+                                onCheckedChange={() =>
+                                    setSelectedDevice(selectedDevice === device ? null : device)
+                                }
+                                onClick={() => setSelectedDevice(device)}
+                            >
+                                {selectedDevice === device ? "Model selected" : "Select"}
+                            </Checkbox>
+                            <p className="font-bold text-base">{device.modelName}</p>
+                        </div>
+                        <p>{device.ip}</p>
+                        <p>{device.hostname}</p>
+                        <div className="mt-auto">
+                            <p className="text-muted-foreground line-clamp-1">
+                                {device.organization}
+                            </p>
+                            <p className="text-muted-foreground">{device.location}</p>
+                        </div>
                     </div>
                 </div>
-                <Image
-                    src={`/${device.modelName}.jpg`}
-                    alt=""
-                    width={320}
-                    height={140}
-                    className="object-cover border-red-500"
-                />
                 <div className="flex flex-col space-y-1">
                     {[
                         { label: "Instance ID", value: device.instanceId },
