@@ -1,9 +1,7 @@
 "use client";
-import test from "../../../../public/GNU.jpg";
 
 import React from "react";
 import { ShodanDevice } from "@/app/actions/fetch-shodan-devices";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useDeviceContext } from "@/app/context/device-context";
 import { cn, findBestMatchingImage, imageMap } from "@/lib/utils";
 import Image from "next/image";
@@ -20,7 +18,10 @@ export default function DeviceItem({ device }: { device: ShodanDevice }) {
                 selectedDevice === device && "bg-blue-500/5 dark:bg-blue-200/5"
             )}
         >
-            <div className="grid lg:grid-cols-2 lg:grid-rows-1 gap-4">
+            <button
+                className="grid lg:grid-cols-2 lg:grid-rows-1 gap-4 text-left w-full"
+                onClick={() => setSelectedDevice(selectedDevice === device ? null : device)}
+            >
                 <div className="flex flex-col lg:flex-row gap-2">
                     {imageKey ? (
                         <Image
@@ -35,17 +36,7 @@ export default function DeviceItem({ device }: { device: ShodanDevice }) {
                     )}
                     <div className="flex flex-col">
                         <div className="flex items-center gap-2">
-                            <Checkbox
-                                value={device.modelName}
-                                checked={selectedDevice === device}
-                                onCheckedChange={() =>
-                                    setSelectedDevice(selectedDevice === device ? null : device)
-                                }
-                                onClick={() => setSelectedDevice(device)}
-                            >
-                                {selectedDevice === device ? "Model selected" : "Select"}
-                            </Checkbox>
-                            <p className="font-bold text-base">{device.modelName}</p>
+                            <strong className="text-base">{device.modelName}</strong>
                         </div>
                         <p>{device.ip}</p>
                         <p>{device.hostname}</p>
@@ -74,7 +65,7 @@ export default function DeviceItem({ device }: { device: ShodanDevice }) {
                         </div>
                     ))}
                 </div>
-            </div>
+            </button>
         </li>
     );
 }
