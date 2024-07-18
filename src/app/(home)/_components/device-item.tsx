@@ -5,14 +5,20 @@ import { ShodanDevice } from "@/app/actions/fetch-shodan-devices";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useDeviceContext } from "@/app/context/device-context";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 export default function DeviceItem({ device }: { device: ShodanDevice }) {
     const { setSelectedDevice, selectedDevice } = useDeviceContext();
 
+    console.log(device.modelName);
+
     return (
         <li
             id={device.ip}
-            className={cn("border-b p-4 px-6", selectedDevice === device && "bg-blue-500/5 dark:bg-blue-200/5")}
+            className={cn(
+                "border-b p-4 px-6",
+                selectedDevice === device && "bg-blue-500/5 dark:bg-blue-200/5"
+            )}
         >
             <div className="grid lg:grid-cols-2 lg:grid-rows-1 gap-4">
                 <div className="flex flex-col">
@@ -20,7 +26,9 @@ export default function DeviceItem({ device }: { device: ShodanDevice }) {
                         <Checkbox
                             value={device.modelName}
                             checked={selectedDevice === device}
-                            onCheckedChange={() => setSelectedDevice(selectedDevice === device ? null : device)}
+                            onCheckedChange={() =>
+                                setSelectedDevice(selectedDevice === device ? null : device)
+                            }
                             onClick={() => setSelectedDevice(device)}
                         >
                             {selectedDevice === device ? "Model selected" : "Select"}
@@ -34,6 +42,13 @@ export default function DeviceItem({ device }: { device: ShodanDevice }) {
                         <p className="text-muted-foreground">{device.location}</p>
                     </div>
                 </div>
+                <Image
+                    src={`/${device.modelName}.jpg`}
+                    alt=""
+                    width={320}
+                    height={140}
+                    className="object-cover border-red-500"
+                />
                 <div className="flex flex-col space-y-1">
                     {[
                         { label: "Instance ID", value: device.instanceId },
