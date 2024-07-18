@@ -13,10 +13,7 @@ export default function DeviceItem({ device }: { device: ShodanDevice }) {
     return (
         <li
             id={device.ip}
-            className={cn(
-                "border-b p-4 px-6",
-                selectedDevice === device && "bg-blue-500/5 dark:bg-blue-200/5"
-            )}
+            className={cn("border-b p-4 px-6", selectedDevice === device && "bg-accent-blue/5")}
         >
             <button
                 className="grid lg:grid-cols-2 lg:grid-rows-1 gap-4 text-left w-full"

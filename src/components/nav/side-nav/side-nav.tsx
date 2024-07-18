@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Skeleton } from "@/components/ui/skeleton";
 import { CveItem } from "./cve-item";
 import { getDeviceSuggestions } from "./_utils";
+import { cn } from "@/lib/utils";
 
 export default function SideNav() {
     const { selectedDevice, setSelectedDevice } = useDeviceContext();
@@ -26,7 +27,7 @@ export default function SideNav() {
                     setError(null);
                     try {
                         const data = await fetchCveData(selectedDevice.modelName);
-                        setCveData(data);
+                        setCveData(data.reverse()); // recent results reversed to top
                     } catch (err: any) {
                         setError(err.message);
                     } finally {
@@ -42,16 +43,21 @@ export default function SideNav() {
     const handleSearch = () => setSelectedDevice({ ...selectedDevice!, modelName: searchQuery });
 
     return (
-        <aside className="w-72 max-w-72 shrink-0 py-4 px-2 bg-secondary/40 border-r h-screen max-h-screen overflow-y-scroll grow">
-            <div className="space-y-4">
-                <h3 className="line-clamp-1 leading-[1.2] text-lg font-semibold tracking-tight">
-                    {selectedDevice ? `Model: ${selectedDevice.modelName}` : "Select a model"}
+        <aside
+            className={cn(
+                "max-w-72 w-72 transition-[width] shrink-0 py-4 bg-secondary/40 h-screen max-h-screen overflow-y-scroll grow",
+                selectedDevice ? "w-72 border-r" : "w-0"
+            )}
+        >
+            <div className="space-y-4 px-2">
+                <h3 className="line-clamp-1 leading-[1.2] text-lg font-semibold tracking-tight font-mono-header">
+                    {selectedDevice ? `Model: ${selectedDevice.modelName}` : ""}
                 </h3>
                 {selectedDevice && (
                     <>
                         {loading ? (
                             <>
-                                <Skeleton className="h-9 w-full" />
+                                <Skeleton className="h-8 w-full" />
                                 <div className="flex items-center">
                                     <div className="grow h-px bg-border" />
                                     <Skeleton className="w-[26px] h-[26px] rounded-full" />
@@ -60,7 +66,10 @@ export default function SideNav() {
                             </>
                         ) : cveData ? (
                             <>
-                                <CveCountDisplay count={cveData.length} deviceName={selectedDevice.modelName} />
+                                <CveCountDisplay
+                                    count={cveData.length}
+                                    deviceName={selectedDevice.modelName}
+                                />
                                 {cveData.length > 0 ? (
                                     <ul>
                                         {cveData.map((cve, idx) => (
@@ -82,24 +91,30 @@ export default function SideNav() {
                                         <div>
                                             {getDeviceSuggestions(selectedDevice).length > 0 ? (
                                                 <>
-                                                    <p className="font-bold">Try these suggestions:</p>
-                                                    {getDeviceSuggestions(selectedDevice).map((suggestion) => (
-                                                        <button
-                                                            key={suggestion}
-                                                            className="text-blue-500 underline underline-offset-4 mt-2 block"
-                                                            onClick={() =>
-                                                                setSelectedDevice({
-                                                                    ...selectedDevice,
-                                                                    modelName: suggestion,
-                                                                })
-                                                            }
-                                                        >
-                                                            {suggestion}
-                                                        </button>
-                                                    ))}
+                                                    <p className="font-bold">
+                                                        Try these suggestions:
+                                                    </p>
+                                                    {getDeviceSuggestions(selectedDevice).map(
+                                                        (suggestion) => (
+                                                            <button
+                                                                key={suggestion}
+                                                                className="text-accent-blue underline underline-offset-4 mt-2 block"
+                                                                onClick={() =>
+                                                                    setSelectedDevice({
+                                                                        ...selectedDevice,
+                                                                        modelName: suggestion,
+                                                                    })
+                                                                }
+                                                            >
+                                                                {suggestion}
+                                                            </button>
+                                                        )
+                                                    )}
                                                 </>
                                             ) : (
-                                                <p>We couldn&apos;t come up with any suggestions :(</p>
+                                                <p>
+                                                    We couldn&apos;t come up with any suggestions :(
+                                                </p>
                                             )}
                                         </div>
                                     </>
@@ -115,12 +130,16 @@ export default function SideNav() {
 
 function CveCountDisplay({ count, deviceName }: { count: number; deviceName: string }) {
     return (
-        <div className="relative h-9 px-2 bg-background flex justify-between items-center border rounded-md p-1 font-bold">
-            <span className={count > 0 ? "text-destructive" : "text-emerald-600 dark:text-emerald-400"}>
+        <div className="relative h-8 px-2 bg-background flex justify-between items-center border rounded-md p-1 font-bold">
+            <span
+                className={
+                    count > 0 ? "text-destructive" : "text-emerald-600 dark:text-emerald-400"
+                }
+            >
                 {count} CVE(s) found
             </span>
             <Tooltip delayDuration={50}>
-                <TooltipTrigger className="h-9 w-9 border rounded-md rounded-l-none absolute -right-px -top-px grid place-items-center bg-secondary">
+                <TooltipTrigger className="h-8 w-8 border rounded-md rounded-l-none absolute -right-px -top-px grid place-items-center bg-secondary">
                     <InfoCircledIcon className="h-4 w-4" />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-[60ch] text-pretty">
