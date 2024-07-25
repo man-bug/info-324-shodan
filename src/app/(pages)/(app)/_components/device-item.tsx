@@ -1,14 +1,43 @@
 "use client";
-
 import React from "react";
 import { ShodanDevice } from "@/app/actions/fetch-shodan-devices";
 import { useDeviceContext } from "@/app/context/device-context";
 import { cn, findBestMatchingImage, imageMap } from "@/lib/utils";
 import Image from "next/image";
 
-export default function DeviceItem({ device }: { device: ShodanDevice }) {
+export default function DeviceItem({
+    device,
+    searchQuery,
+}: {
+    device: ShodanDevice;
+    searchQuery: string;
+}) {
     const { setSelectedDevice, selectedDevice } = useDeviceContext();
     const imageKey = findBestMatchingImage(device.modelName);
+
+    const highlightMatch = (text: string, query: string) => {
+        if (!query || !text) return text;
+        const parts = text.split(new RegExp(`(${query})`, "gi"));
+        return parts.map((part, index) =>
+            part.toLowerCase() === query.toLowerCase() ? (
+                <mark key={index} className="rounded px-0.5">
+                    {part}
+                </mark>
+            ) : (
+                part
+            )
+        );
+    };
+
+    const renderHighlightedField = (label: string, value: string | undefined) => (
+        <div className="flex justify-between items-end">
+            <p className="font-bold leading-none">{label}</p>
+            <div className="flex-grow border-b-2 border-dotted mx-0.5"></div>
+            <p className="text-muted-foreground leading-none">
+                {highlightMatch(value || "", searchQuery)}
+            </p>
+        </div>
+    );
 
     return (
         <li
@@ -33,34 +62,30 @@ export default function DeviceItem({ device }: { device: ShodanDevice }) {
                     )}
                     <div className="flex flex-col">
                         <div className="flex items-center gap-2">
-                            <strong className="text-base">{device.modelName}</strong>
+                            <strong className="text-base">
+                                {highlightMatch(device.modelName, searchQuery)}
+                            </strong>
                         </div>
-                        <p>{device.ip}</p>
-                        <p>{device.hostname}</p>
+                        <p>{highlightMatch(device.ip, searchQuery)}</p>
+                        <p>{highlightMatch(device.hostname, searchQuery)}</p>
                         <div className="mt-auto">
                             <p className="text-muted-foreground line-clamp-1">
-                                {device.organization}
+                                {highlightMatch(device.organization, searchQuery)}
                             </p>
-                            <p className="text-muted-foreground">{device.location}</p>
+                            <p className="text-muted-foreground">
+                                {highlightMatch(device.location, searchQuery)}
+                            </p>
                         </div>
                     </div>
                 </div>
                 <div className="flex flex-col space-y-1">
-                    {[
-                        { label: "Instance ID", value: device.instanceId },
-                        { label: "Object Name", value: device.objectName },
-                        { label: "Location Description", value: device.locationDesc },
-                        { label: "Vendor Name", value: device.vendorName },
-                        { label: "Application Software", value: device.applicationSoftware },
-                        { label: "Firmware", value: device.firmware },
-                        { label: "Description", value: device.description },
-                    ].map((item, index) => (
-                        <div className="flex justify-between items-end" key={index}>
-                            <p className="font-bold leading-none">{item.label}</p>
-                            <div className="flex-grow border-b-2 border-dotted mx-0.5"></div>
-                            <p className="text-muted-foreground leading-none">{item.value}</p>
-                        </div>
-                    ))}
+                    {renderHighlightedField("Instance ID", device.instanceId)}
+                    {renderHighlightedField("Object Name", device.objectName)}
+                    {renderHighlightedField("Location Description", device.locationDesc)}
+                    {renderHighlightedField("Vendor Name", device.vendorName)}
+                    {renderHighlightedField("Application Software", device.applicationSoftware)}
+                    {renderHighlightedField("Firmware", device.firmware)}
+                    {renderHighlightedField("Description", device.description)}
                 </div>
             </button>
         </li>

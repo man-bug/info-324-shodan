@@ -12,7 +12,11 @@ const DeviceContext = createContext<DeviceContextType | undefined>(undefined);
 export const DeviceProvider = ({ children }: { children: ReactNode }) => {
     const [selectedDevice, setSelectedDevice] = useState<ShodanDevice | null>(null);
 
-    return <DeviceContext.Provider value={{ selectedDevice, setSelectedDevice }}>{children}</DeviceContext.Provider>;
+    return (
+        <DeviceContext.Provider value={{ selectedDevice, setSelectedDevice }}>
+            {children}
+        </DeviceContext.Provider>
+    );
 };
 
 export const useDeviceContext = () => {

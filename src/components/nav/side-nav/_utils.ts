@@ -25,7 +25,11 @@ export function getDeviceSuggestions(device: ShodanDevice | null): string[] {
         }
     });
 
-    const rules = [(s: string) => s.length > 1, (s: string) => !/^\d+$/.test(s), (s: string) => s.length <= 20];
+    const rules = [
+        (s: string) => s.length > 1,
+        (s: string) => !/^\d+$/.test(s),
+        (s: string) => s.length <= 20,
+    ];
 
     return Array.from(suggestions)
         .filter((s) => rules.every((rule) => rule(s)))

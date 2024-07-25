@@ -11,11 +11,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CveItem } from "./cve-item";
 import { getDeviceSuggestions } from "./_utils";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function SideNav() {
     const { selectedDevice, setSelectedDevice } = useDeviceContext();
     const [cveData, setCveData] = React.useState<CveResult[] | null>(null);
     const [searchQuery, setSearchQuery] = React.useState("");
+    const [cveSearchQuery, setCveSearchQuery] = React.useState("");
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
 
@@ -40,7 +42,17 @@ export default function SideNav() {
             fetchData();
         }
     }, [selectedDevice]);
+
     const handleSearch = () => setSelectedDevice({ ...selectedDevice!, modelName: searchQuery });
+
+    const filteredCveData = React.useMemo(() => {
+        if (!cveData) return [];
+        return cveData.filter(
+            (cve) =>
+                cve.id.toLowerCase().includes(cveSearchQuery.toLowerCase()) ||
+                cve.description.toLowerCase().includes(cveSearchQuery.toLowerCase())
+        );
+    }, [cveData, cveSearchQuery]);
 
     return (
         <aside
@@ -50,9 +62,16 @@ export default function SideNav() {
             )}
         >
             <div className="space-y-4 px-2">
-                <h3 className="line-clamp-1 leading-[1.2] text-lg font-semibold tracking-tight font-mono-header">
-                    {selectedDevice ? `Model: ${selectedDevice.modelName}` : ""}
-                </h3>
+                <div className="h-8 flex items-center">
+                    <h3 className="line-clamp-1 leading-[1.2] text-lg font-semibold tracking-tight font-mono-header">
+                        {selectedDevice ? selectedDevice.modelName : ""}
+                    </h3>
+                </div>
+                {error && (
+                    <Alert variant="destructive">
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                )}
                 {selectedDevice && (
                     <>
                         {loading ? (
@@ -71,23 +90,25 @@ export default function SideNav() {
                                     deviceName={selectedDevice.modelName}
                                 />
                                 {cveData.length > 0 ? (
-                                    <ul>
-                                        {cveData.map((cve, idx) => (
-                                            <CveItem key={idx} cve={cve} index={idx} />
-                                        ))}
-                                    </ul>
-                                ) : (
                                     <>
                                         <SearchInput
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            onSearch={handleSearch}
+                                            value={cveSearchQuery}
+                                            onChange={(e) => setCveSearchQuery(e.target.value)}
+                                            placeholder="Search CVEs..."
                                         />
-                                        <div className="relative w-full flex items-center">
-                                            <div className="grow h-px bg-border" />
-                                            <span className="px-2 font-bold uppercase">OR</span>
-                                            <div className="grow h-px bg-border" />
-                                        </div>
+                                        <ul>
+                                            {filteredCveData.map((cve, idx) => (
+                                                <CveItem
+                                                    key={idx}
+                                                    cve={cve}
+                                                    index={idx}
+                                                    searchQuery={cveSearchQuery}
+                                                />
+                                            ))}
+                                        </ul>
+                                    </>
+                                ) : (
+                                    <>
                                         <div>
                                             {getDeviceSuggestions(selectedDevice).length > 0 ? (
                                                 <>
@@ -117,6 +138,17 @@ export default function SideNav() {
                                                 </p>
                                             )}
                                         </div>
+                                        <div className="relative w-full flex items-center">
+                                            <div className="grow h-px bg-border" />
+                                            <span className="px-2 font-bold uppercase">OR</span>
+                                            <div className="grow h-px bg-border" />
+                                        </div>
+                                        <SearchInput
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            onSearch={handleSearch}
+                                            placeholder="Search models..."
+                                        />
                                     </>
                                 )}
                             </>
@@ -144,8 +176,8 @@ function CveCountDisplay({ count, deviceName }: { count: number; deviceName: str
                 </TooltipTrigger>
                 <TooltipContent className="max-w-[60ch] text-pretty">
                     {count > 0
-                        ? `This result indicates possible vulnerabilities, but does not mean the ${deviceName} device is compromised.`
-                        : `This result does not mean the ${deviceName} device is secure. Try to broaden your search with the suggestions below.`}
+                        ? `This result indicates possible vulnerabilities, but does not mean ${deviceName} is compromised.`
+                        : `This result does not mean ${deviceName} is secure. Try to broaden your query with the suggestions below, or enter a custom query.`}
                 </TooltipContent>
             </Tooltip>
         </div>
@@ -156,10 +188,12 @@ function SearchInput({
     value,
     onChange,
     onSearch,
+    placeholder,
 }: {
     value: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onSearch: () => void;
+    onSearch?: () => void;
+    placeholder: string;
 }) {
     return (
         <div className="relative">
@@ -167,19 +201,21 @@ function SearchInput({
                 id="search"
                 autoComplete="off"
                 type="text"
-                placeholder="Search..."
+                placeholder={placeholder}
                 value={value}
                 onChange={onChange}
                 className="!ring-0 placeholder:uppercase bg-background"
             />
-            <Button
-                onClick={onSearch}
-                size="icon"
-                variant="secondary"
-                className="uppercase absolute right-0 top-0 rounded-l-none border"
-            >
-                <MagnifyingGlassIcon className="w-4 h-4" />
-            </Button>
+            {onSearch && (
+                <Button
+                    onClick={onSearch}
+                    size="icon"
+                    variant="secondary"
+                    className="uppercase absolute right-0 top-0 rounded-l-none border"
+                >
+                    <MagnifyingGlassIcon className="w-4 h-4" />
+                </Button>
+            )}
         </div>
     );
 }

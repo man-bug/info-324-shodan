@@ -8,15 +8,14 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useDeviceContext } from "@/app/context/device-context";
 import { ShodanDevice } from "@/app/actions/fetch-shodan-devices";
-
-// TODO: body scrolls when isSearching & searchRef.current is hovered or scrolling past Command overflow
+import { useSearchContext } from "@/app/context/search-context";
 
 export default function SearchBar({ initialDevices }: { initialDevices: ShodanDevice[] }) {
-    const [searchQuery, setSearchQuery] = useState("");
     const [isSearching, setIsSearching] = useState(false);
-    const [devices] = useState<ShodanDevice[]>(initialDevices);
     const searchRef = useRef<HTMLDivElement | null>(null);
+    const inputRef = useRef<HTMLInputElement | null>(null);
     const { setSelectedDevice } = useDeviceContext();
+    const { searchQuery, setSearchQuery, filteredDevices, setFilteredDevices } = useSearchContext();
     const router = useRouter();
 
     useEffect(() => {
@@ -35,6 +34,29 @@ export default function SearchBar({ initialDevices }: { initialDevices: ShodanDe
             document.removeEventListener("click", handleClick);
         };
     }, [isSearching]);
+
+    useEffect(() => {
+        const filtered = initialDevices.filter((device) => {
+            return getMatchingValue(device, searchQuery) !== null;
+        });
+        setFilteredDevices(filtered);
+    }, [searchQuery, initialDevices, setFilteredDevices]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.ctrlKey && e.key === "k") {
+                e.preventDefault();
+                inputRef.current?.focus();
+                setIsSearching(true);
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, []);
 
     const getMatchingValue = (result: ShodanDevice, query: string): string | null => {
         const searchFields: (keyof ShodanDevice)[] = [
@@ -73,9 +95,11 @@ export default function SearchBar({ initialDevices }: { initialDevices: ShodanDe
         );
     };
 
-    const filteredDevices = devices.filter((result) => {
-        return getMatchingValue(result, searchQuery) !== null;
-    });
+    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            setIsSearching(false);
+        }
+    };
 
     return (
         <>
@@ -91,6 +115,7 @@ export default function SearchBar({ initialDevices }: { initialDevices: ShodanDe
             >
                 <Input
                     id="search"
+                    ref={inputRef}
                     autoComplete="off"
                     type="text"
                     placeholder="Search..."
@@ -99,6 +124,7 @@ export default function SearchBar({ initialDevices }: { initialDevices: ShodanDe
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         setSearchQuery(e.target.value)
                     }
+                    onKeyPress={handleKeyPress}
                     className={cn(
                         "!ring-0 placeholder:uppercase bg-background px-4 h-10",
                         isSearching && "!rounded-b-none border-b-0 z-[40]"

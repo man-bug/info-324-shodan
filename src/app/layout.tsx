@@ -13,6 +13,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { getSession } from "@/lib/auth";
 import { SessionProvider } from "./context/session-context";
 import { Toaster } from "@/components/ui/toaster";
+import { SearchProvider } from "./context/search-context";
 
 const fontSans = FontSans({
     subsets: ["latin"],
@@ -59,11 +60,13 @@ export default async function RootLayout({
                         disableTransitionOnChange
                     >
                         <DeviceProvider>
-                            <TooltipProvider>
-                                <NextTopLoader shadow="none" showAtBottom />
-                                <Toaster />
-                                <div className="min-h-screen flex flex-col">{children}</div>
-                            </TooltipProvider>
+                            <SearchProvider>
+                                <TooltipProvider>
+                                    <NextTopLoader shadow="none" showAtBottom />
+                                    <Toaster />
+                                    <div className="min-h-screen flex flex-col">{children}</div>
+                                </TooltipProvider>
+                            </SearchProvider>
                         </DeviceProvider>
                     </ThemeProvider>
                 </SessionProvider>
